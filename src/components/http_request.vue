@@ -1,5 +1,19 @@
 <template>
     <div>
+        <label for="vectorSelect">Select an option:</label>
+        <select v-model="selectedOption" id="vectorSelect">
+            <option :value="null" disabled>Select an option</option>
+            <option v-for="option in lineOptions" :key="option.id" :value="option">
+                {{ option.label }}
+            </option>
+        </select>
+
+        <div v-if="selectedOption">
+            <!-- Display information about the selected option -->
+            Selected Option: {{ selectedOption.id }}
+        </div>
+    </div>
+    <div>
         <button @click="getPosts">Load list</button>
         <div v-for="post in  stopInData " :key="post.trip_id">
             <div v-for="out in stopOutData " :key="post.trip_id">
@@ -28,8 +42,14 @@ export default {
             stopInData: [],
             stopinID: 170763,
             stopOutData: [],
-            stopOutID: 172478,
-            validLineIds: ['1715'],
+            stopOutID: [172478, 172479],
+            validLineIds: ['1715', '1228'],
+            lineOptions: [
+                { id: 0, label: 'linha 1715' },
+                { id: 1, label: 'linha 1228' },
+
+            ],
+            selectedOption: null  // Initially, no option is selected
         };
     },
 
@@ -48,7 +68,7 @@ export default {
                 .catch((error) => {
                     console.error('Error fetching data:', error);
                 });
-            const apiUrl2 = `https://api.carrismetropolitana.pt/stops/${this.stopOutID}/realtime`
+            const apiUrl2 = `https://api.carrismetropolitana.pt/stops/${this.stopOutID[this.selectedOption.id]}/realtime`
             axios.get(apiUrl2)
                 .then((response) => {
                     this.stopOutData = response.data;
@@ -63,7 +83,7 @@ export default {
             this.calculateTimeDifference(this.currentTime, post.scheduled_arrival)
             return (
                 this.validLineIds.includes(post.line_id) &&
-                post.scheduled_arrival > this.currentTime &&
+                post.scheduled_arrival < this.currentTime &&
                 post.trip_id === out.trip_id
 
 
